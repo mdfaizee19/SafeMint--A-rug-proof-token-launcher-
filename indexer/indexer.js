@@ -1,91 +1,59 @@
+// indexer/indexer.js
+console.log("Starting Indexer…");
+
 const { ethers } = require("ethers");
 const fs = require("fs");
-const dotenv = require("dotenv");
-dotenv.config();
+const path = require("path");
+require("dotenv").config();
 
-// FIXED: correct constant name
+// ---------------------------
+// Load ABI from local JSON
+// ---------------------------
 const LAUNCHPAD_ABI = require("./LaunchPadABI.json");
 
+// ---------------------------
+// Load environment variables
+// ---------------------------
 const RPC = process.env.QIE_RPC;
 const LAUNCHPAD_ADDRESS = process.env.LAUNCHPAD_ADDRESS;
 const START_BLOCK = Number(process.env.LAUNCHPAD_START_BLOCK);
 
+// Validate env
+console.log("ENV CHECK:", {
+  RPC,
+  LAUNCHPAD_ADDRESS,
+  START_BLOCK
+});
+
+if (!RPC || !LAUNCHPAD_ADDRESS || !START_BLOCK) {
+  console.error("❌ Missing env variables in Railway");
+  process.exit(1);
+}
+
+// ---------------------------
+// Provider
+// ---------------------------
 const provider = new ethers.JsonRpcProvider(RPC);
 
-console.log("Indexer connecting…");
+// Path for db.json inside indexer folder
+const DB = path.join(__dirname, "db.json");
 
-// Ensure DB exists
-if (!fs.existsSync("db.json")) {
-  fs.writeFileSync("db.json", JSON.stringify({ tokens: [] }, null, 2));
+// Create DB if missing
+if (!fs.existsSync(DB)) {
+  fs.writeFileSync(DB, JSON.stringify({ tokens: [] }, null, 2));
 }
 
-async function main() {
-  console.log("Listening from block:", START_BLOCK);
-
-  const contract = new ethers.Contract(
-    LAUNCHPAD_ADDRESS,
-    LAUNCHPAD_ABI,
-    provider
-  );
-
-  // -------------------------------------------
-  // FETCH PAST EVENTS (BATCH 5000)
-  // -------------------------------------------
-  let latest = await provider.getBlockNumber();
-  let from = START_BLOCK;
-
-  while (from < latest) {
-    let to = Math.min(from + 5000, latest);
-    console.log(`Fetching logs: ${from} → ${to}`);
-
-    const logs = await provider.getLogs({
-      address: LAUNCHPAD_ADDRESS,
-      topics: [
-        ethers.id(
-          "Launched(address,address,uint256,uint256,uint256,uint256)"
-        ),
-      ],
-      fromBlock: from,
-      toBlock: to,
-    });
-
-    for (const log of logs) {
-      const parsed = contract.interface.parseLog(log);
-      saveLaunch(parsed.args, log.transactionHash);
-    }
-
-    from = to + 1;
-  }
-
-  // -------------------------------------------
-  // REALTIME LISTENER
-  // -------------------------------------------
-  contract.on(
-    "Launched",
-    (owner, token, supply, liquidity, months, unlockTime, event) => {
-      console.log("New Launch:", token);
-
-      saveLaunch(
-        {
-          owner,
-          token,
-          totalSupply: supply,
-          liquidityQIE: liquidity,
-          lockMonths: months,
-          unlockTime,
-        },
-        event.transactionHash
-      );
-    }
-  );
-}
-
+// ---------------------------
+// Save token to DB
+// ---------------------------
 function saveLaunch(data, txHash) {
-  const db = JSON.parse(fs.readFileSync("db.json"));
+  const db = JSON.parse(fs.readFileSync(DB));
 
   const exists = db.tokens.find(
-    (x) => x.tokenAddress.toLowerCase() === data.token.toLowerCase()
+    (t) =>
+      (t.tokenAddress || "").toLowerCase() === data.token.toLowerCase()
   );
+
   if (exists) return;
 
   db.tokens.push({
@@ -97,10 +65,76 @@ function saveLaunch(data, txHash) {
     unlockTime: Number(data.unlockTime),
     creationTx: txHash,
     trustScore: 2,
+    withdrawn: false
   });
 
-  fs.writeFileSync("db.json", JSON.stringify(db, null, 2));
+  fs.writeFileSync(DB, JSON.stringify(db, null, 2));
   console.log("Saved token:", data.token);
 }
 
-main().catch(console.error);
+// ---------------------------
+// MAIN INDEXER
+// ---------------------------
+async function main() {
+  console.log("Listening from block:", START_BLOCK);
+
+  const contract = new ethers.Contract(
+    LAUNCHPAD_ADDRESS,
+    LAUNCHPAD_ABI,
+    provider
+  );
+
+  // ------------------------------------
+  // 1. Fetch past events
+  // ------------------------------------
+  const latest = await provider.getBlockNumber();
+  let from = START_BLOCK;
+
+  while (from <= latest) {
+    let to = Math.min(from + 5000, latest);
+
+    console.log(`Fetching logs: ${from} → ${to}`);
+
+    const logs = await provider.getLogs({
+      address: LAUNCHPAD_ADDRESS,
+      topics: [
+        ethers.id("Launched(address,address,uint256,uint256,uint256,uint256,string)")
+      ],
+      fromBlock: from,
+      toBlock: to
+    });
+
+    for (const log of logs) {
+      const parsed = contract.interface.parseLog(log);
+
+      saveLaunch(parsed.args, log.transactionHash);
+    }
+
+    from = to + 1;
+  }
+
+  // ------------------------------------
+  // 2. Real-time watcher
+  // ------------------------------------
+  contract.on(
+    "Launched",
+    (owner, token, supply, liquidity, months, unlockTime, imageCid, event) => {
+      console.log("New Launch Detected:", token);
+
+      saveLaunch(
+        {
+          owner,
+          token,
+          totalSupply: supply,
+          liquidityQIE: liquidity,
+          lockMonths: months,
+          unlockTime,
+          imageCid
+        },
+        event.transactionHash
+      );
+    }
+  );
+}
+
+main().catch((err) => console.error("Indexer Error:", err));

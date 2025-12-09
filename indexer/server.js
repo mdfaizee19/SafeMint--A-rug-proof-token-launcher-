@@ -8,7 +8,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const DB = "./db.json";
+// FIXED: absolute path to DB inside indexer folder (Railway safe)
+const DB = __dirname + "/db.json";
+
 const ADMIN_KEY = process.env.INDEXER_ADMIN_KEY || "";
 
 /* ---------------------------------------------------------
@@ -47,13 +49,14 @@ app.get("/tokens/:address", (req, res) => {
     (t) => (t.tokenAddress || "").toLowerCase() === addr
   );
 
-  if (!token) return res.status(404).json({ error: "Token not found" });
+  if (!token)
+    return res.status(404).json({ error: "Token not found" });
 
   res.json(token);
 });
 
 /* ---------------------------------------------------------
-   POST — Add New Token (called from frontend after launch)
+   POST — Add New Token (frontend → backend)
 --------------------------------------------------------- */
 app.post("/tokens", (req, res) => {
   const incoming = req.body;
@@ -63,12 +66,12 @@ app.post("/tokens", (req, res) => {
 
   const db = readDB();
 
-  // Avoid duplicates
   const exists = db.tokens.find(
     (t) =>
       (t.tokenAddress || "").toLowerCase() ===
       incoming.tokenAddress.toLowerCase()
   );
+
   if (!exists) {
     db.tokens.push({
       tokenAddress: incoming.tokenAddress,
@@ -89,13 +92,12 @@ app.post("/tokens", (req, res) => {
 });
 
 /* ---------------------------------------------------------
-   POST — Update Withdrawn Status
+   POST — Update Withdrawn Status (contract → backend)
 --------------------------------------------------------- */
 app.post("/tokens/:address/withdraw", (req, res) => {
   const key = req.headers["x-admin-key"] || "";
-  if (ADMIN_KEY && key !== ADMIN_KEY) {
+  if (ADMIN_KEY && key !== ADMIN_KEY)
     return res.status(403).json({ error: "Invalid admin key" });
-  }
 
   const addr = req.params.address.toLowerCase();
   const db = readDB();
@@ -115,9 +117,9 @@ app.post("/tokens/:address/withdraw", (req, res) => {
 });
 
 /* ---------------------------------------------------------
-   SERVER START
+   START SERVER
 --------------------------------------------------------- */
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () =>
-  console.log(`Indexer running on port ${PORT}`)
+  console.log(`Indexer API running on port ${PORT}`)
 );
