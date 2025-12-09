@@ -1,0 +1,211 @@
+// src/components/LaunchModal.jsx
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import UploadPreview from "./UploadPreview";
+import StepIndicator from "./StepIndicator";
+import TrustBadge from "./TrustBadge";
+import LockTimer from "./LockTimer";
+
+import { launchToken } from "../services/launchService";
+import { QIE_EXPLORER } from "../config";
+
+const steps = ["Create Token", "Mint Supply", "Lock Liquidity", "Done"];
+
+export default function LaunchModal({ open, onClose, provider }) {
+  const [step, setStep] = useState(0);
+
+  const [name, setName] = useState("");
+  const [symbol, setSymbol] = useState("");
+  const [supply, setSupply] = useState("");
+  const [liquidity, setLiquidity] = useState("");
+  const [lockMonths, setLockMonths] = useState(6);
+  const [image, setImage] = useState(null);
+
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const [txHash, setTxHash] = useState("");
+  const [launchedToken, setLaunchedToken] = useState("");
+  const [unlockTime, setUnlockTime] = useState(null);
+
+  /* ---------------------------------------------------------
+     Launch function
+  --------------------------------------------------------- */
+  async function handleLaunch() {
+    try {
+      setError("");
+
+      if (!name || !symbol || !supply || !liquidity)
+        throw new Error("Fill all required fields");
+
+      if (!provider) throw new Error("Connect wallet first");
+
+      setBusy(true);
+      setStep(1);
+
+      const result = await launchToken({
+        name,
+        symbol,
+        supply,
+        liquidity,
+        lockMonths,
+        imageCid: image?.cid || ""
+      });
+
+      setTxHash(result.txHash);
+      setLaunchedToken(result.tokenAddress);
+      setUnlockTime(result.unlockTime);
+
+      /* Optimistic Token Insertion */
+      window.dispatchEvent(
+        new CustomEvent("token-launched", {
+          detail: {
+            tokenAddress: result.tokenAddress,
+            name,
+            symbol,
+            imageCid: image?.cid || "",
+            liquidity,
+            lockMonths,
+            trustScore: 2,
+            timestamp: Math.floor(Date.now() / 1000)
+          }
+        })
+      );
+
+      setStep(3);
+      setBusy(false);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+      setBusy(false);
+      setStep(0);
+    }
+  }
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Modal */}
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring" }}
+        className="relative w-full max-w-2xl p-8 rounded-3xl bg-[#0B1628] border border-white/10 text-white"
+      >
+        {/* Header */}
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h2 className="text-xl font-semibold">Launch Rug-Proof Token</h2>
+            <p className="text-sm text-gray-400">SafeMint • Virtual LP Lock Demo</p>
+          </div>
+          <button className="text-gray-300 hover:text-white" onClick={onClose}>✕</button>
+        </div>
+
+        <StepIndicator steps={steps} current={step} />
+
+        {/* ---------------------------------------------------------
+            STEP 0 — FORM
+        --------------------------------------------------------- */}
+        {step === 0 && (
+          <div className="grid grid-cols-2 gap-6 mt-6">
+
+            <div>
+              <label className="text-sm text-gray-300">Token Name</label>
+              <input className="input" value={name} onChange={(e)=>setName(e.target.value)} />
+
+              <label className="text-sm text-gray-300 mt-4 block">Symbol</label>
+              <input className="input" value={symbol} onChange={(e)=>setSymbol(e.target.value)} />
+
+              <label className="text-sm text-gray-300 mt-4 block">Total Supply</label>
+              <input className="input" type="number" value={supply} onChange={(e)=>setSupply(e.target.value)} />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-300">Liquidity (QIE)</label>
+              <input className="input" type="number" value={liquidity} onChange={(e)=>setLiquidity(e.target.value)} />
+
+              <label className="text-sm text-gray-300 mt-4 block">Lock Duration</label>
+              <select className="input" value={lockMonths} onChange={(e)=>setLockMonths(Number(e.target.value))}>
+                <option value={6}>6 months</option>
+                <option value={12}>12 months</option>
+              </select>
+
+              <UploadPreview className="mt-4" onUploaded={setImage} />
+            </div>
+
+            <div className="col-span-2 flex gap-4 mt-6">
+              <button className="btn-primary flex-1" onClick={handleLaunch} disabled={busy}>
+                Launch & Lock {lockMonths} months
+              </button>
+
+              <button className="btn-secondary" onClick={onClose}>Cancel</button>
+            </div>
+
+          </div>
+        )}
+
+        {/* ---------------------------------------------------------
+            STEP 1 — PROCESSING
+        --------------------------------------------------------- */}
+        {step === 1 && (
+          <div className="text-center mt-10">
+            <h3 className="text-lg font-semibold">Submitting transaction…</h3>
+            <p className="text-gray-400 mt-2">Please confirm in your wallet</p>
+
+            {txHash && <a href={`${QIE_EXPLORER}/tx/${txHash}`} className="text-cyan-300 block mt-4">{txHash}</a>}
+
+            <div className="mt-6 flex justify-center">
+              <div className="loader-circle" />
+            </div>
+          </div>
+        )}
+
+        {/* ---------------------------------------------------------
+            STEP 3 — SUCCESS
+        --------------------------------------------------------- */}
+        {step === 3 && (
+          <div className="text-center mt-10">
+
+            <motion.div initial={{scale:0.8,opacity:0}} animate={{scale:1,opacity:1}} className="success-box">
+              ✓
+            </motion.div>
+
+            <h3 className="text-xl mt-4 font-semibold">Launched Successfully</h3>
+
+            <p className="mt-2 text-gray-300">
+              Token: <span className="text-cyan-300 font-mono">{launchedToken}</span>
+            </p>
+
+            <div className="mt-3 flex items-center justify-center gap-3">
+              <TrustBadge score={2} />
+              <span>Locked until</span>
+              <span className="font-mono">
+                {new Date(unlockTime * 1000).toLocaleString()}
+              </span>
+            </div>
+
+            <LockTimer unlockTime={unlockTime} />
+
+            <div className="mt-6 flex gap-3 justify-center">
+              {txHash && (
+                <a className="btn-secondary" href={`${QIE_EXPLORER}/tx/${txHash}`} target="_blank">
+                  View TX
+                </a>
+              )}
+
+              <a className="btn-primary" href={`/token/${launchedToken}`}>
+                View Token
+              </a>
+            </div>
+          </div>
+        )}
+
+        {error && <div className="text-red-400 mt-4">{error}</div>}
+      </motion.div>
+    </div>
+  );
+}

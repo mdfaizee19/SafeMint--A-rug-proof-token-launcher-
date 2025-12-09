@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-
-html, body, #root { height: 100%; }
-body { @apply bg-[#0b1020] text-white; }
+body {
+   background-color: #070d1c;
+   color: #fff;
+}

@@ -1,176 +1,128 @@
-import React, { useState } from 'react'
-import { ethers } from 'ethers'
-import { Rocket, Loader2 } from 'lucide-react'
+import React, { useState } from "react";
+import { ethers } from "ethers";
+import { LAUNCHPAD_ABI } from "../utils/contract";
+import { LAUNCHPAD_ADDRESS } from "../config";
+import { QIE_EXPLORER } from "../config";
 
-// Replace with your deployed SafeMintLaunchPad contract address
-const LAUNCHPAD_ADDRESS = '0xYourLaunchPadAddressHere'
+export default function LaunchForm({ provider, account }) {
+  const [name, setName] = useState("MyToken");
+  const [symbol, setSymbol] = useState("MTK");
+  const [supply, setSupply] = useState("1000000"); // whole tokens
+  const [liquidity, setLiquidity] = useState("0.5"); // amount of native coin to pair (demo)
+  const [lockMonths, setLockMonths] = useState(6);
+  const [image, setImage] = useState(null);
+  const [step, setStep] = useState(0); // 0 = form, 1 = waiting tx, 2 = success
+  const [txHash, setTxHash] = useState("");
+  const [launchedToken, setLaunchedToken] = useState("");
+  const [error, setError] = useState("");
 
-// LaunchPad contract ABI (function signatures)
-const LAUNCHPAD_ABI = [
-  'function launchFairToken(string name, string symbol, uint256 totalSupply, uint256 lockMonths) payable',
-  'event Launched(address indexed token, uint256 lockTime)'
-]
+  const onUploaded = (res) => {
+    setImage(res);
+  };
 
-export default function LaunchForm({ provider, onLaunched }) {
-  const [name, setName] = useState('MyToken')
-  const [symbol, setSymbol] = useState('MTK')
-  const [supply, setSupply] = useState('1000000')
-  const [qie, setQie] = useState('0.5')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  const handleLaunch = async () => {
-    if (!provider) {
-      setError('Please connect wallet first')
-      return
-    }
-
-    if (!name.trim() || !symbol.trim() || !supply || !qie) {
-      setError('All fields are required')
-      return
-    }
-
-    if (LAUNCHPAD_ADDRESS === '0xYourLaunchPadAddressHere') {
-      setError('LaunchPad address not configured. Deploy the contract first.')
-      return
-    }
-
-    setError('')
-    setLoading(true)
-
+  async function submitLaunch() {
+    if (!provider) return alert("Connect wallet");
+    setError("");
     try {
-      const signer = provider.getSigner()
-      const contract = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, signer)
+      setStep(1);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, signer);
 
-      const totalSupply = ethers.parseEther(supply)
-      const qieValue = ethers.parseEther(qie)
+      // parse units
+      const supplyWei = ethers.parseUnits(supply, 18); // assumes token 18 decimals
+      const liquidityWei = ethers.parseEther(liquidity);
 
-      console.log('Launching token:', { name, symbol, totalSupply, qieValue })
+      // call launchFairToken(name,symbol,supply,liquidity,lockMonths) payable
+      const tx = await contract.launchFairToken(name, symbol, supplyWei, liquidityWei, lockMonths, { value: liquidityWei });
+      setTxHash(tx.hash);
+      await tx.wait();
 
-      const tx = await contract.launchFairToken(
-        name,
-        symbol,
-        totalSupply,
-        6, // 6 months lock
-        { value: qieValue, gasLimit: 5_000_000n }
-      )
-
-      console.log('Transaction hash:', tx.hash)
-      onLaunched?.(tx.hash)
-
-      const receipt = await tx.wait()
-      console.log('Transaction confirmed:', receipt)
-
-      // Attempt to extract the Launched event and get token address
-      if (receipt && receipt.logs) {
-        try {
-          const iface = new ethers.Interface(LAUNCHPAD_ABI)
-          const log = receipt.logs
-            .map(l => {
-              try {
-                return iface.parseLog(l)
-              } catch {
-                return null
-              }
-            })
-            .find(x => x && x.name === 'Launched')
-
-          if (log && log.args && log.args[0]) {
-            console.log('Token address:', log.args[0])
-            onLaunched?.(null, log.args[0])
+      // frontend tries to parse TokenLaunched event from receipt
+      const receipt = await provider.getTransactionReceipt(tx.hash);
+      // parse events by interface:
+      try {
+        const iface = new ethers.Interface(LAUNCHPAD_ABI);
+        let tokenAddr = "";
+        for (const log of receipt.logs) {
+          try {
+            const parsed = iface.parseLog(log);
+            if (parsed && parsed.name === "TokenLaunched") {
+              tokenAddr = parsed.args[1] || parsed.args.token || parsed.args[0];
+              break;
+            }
+          } catch (e) {
+            // ignore parse errors
           }
-        } catch (e) {
-          console.warn('Could not extract token address from event:', e)
         }
+        setLaunchedToken(tokenAddr || "unknown");
+      } catch (e) {
+        console.warn("Couldn't parse event:", e);
       }
 
-      setName('MyToken')
-      setSymbol('MTK')
-      setSupply('1000000')
-      setQie('0.5')
+      setStep(2);
     } catch (e) {
-      const errorMsg = e?.reason || e?.message || String(e)
-      console.error('Launch error:', e)
-      setError(`Launch failed: ${errorMsg}`)
-    } finally {
-      setLoading(false)
+      console.error(e);
+      setError(e?.message || String(e));
+      setStep(0);
     }
   }
 
   return (
-    <div className="p-6 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10">
-      <h3 className="text-2xl font-bold mb-6 text-white">Launch Your Token</h3>
+    <div className="p-6 bg-white/6 rounded-lg">
+      {step === 0 && (
+        <>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <input value={name} onChange={e => setName(e.target.value)} className="p-3 rounded bg-white/6" placeholder="Token Name" />
+            <input value={symbol} onChange={e => setSymbol(e.target.value)} className="p-3 rounded bg-white/6" placeholder="Symbol" />
+            <input value={supply} onChange={e => setSupply(e.target.value)} className="p-3 rounded bg-white/6" placeholder="Total Supply" />
+            <input value={liquidity} onChange={e => setLiquidity(e.target.value)} className="p-3 rounded bg-white/6" placeholder="Native QIE for Liquidity" />
+          </div>
 
-      {error && (
-        <div className="mb-4 p-3 rounded bg-red-500/20 border border-red-500/50 text-red-200 text-sm">
-          {error}
+          <div className="mb-4">
+            <label className="block text-sm mb-1">Upload Token Image (optional)</label>
+            <input type="file" accept="image/*" onChange={async e => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              const url = URL.createObjectURL(f);
+              setImage({ url, cid: "local" });
+            }} />
+            {image?.url && <img src={image.url} alt="preview" className="w-28 h-28 mt-2 rounded" />}
+          </div>
+
+          <div className="flex items-center gap-3 mb-4">
+            <label className="text-sm">Lock months</label>
+            <select value={lockMonths} onChange={e => setLockMonths(Number(e.target.value))} className="bg-white/6 p-2 rounded">
+              <option value={6}>6</option>
+              <option value={12}>12</option>
+            </select>
+          </div>
+
+          {error && <div className="text-red-400 mb-3">{error}</div>}
+
+          <button onClick={submitLaunch} className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded">
+            Launch & Lock {lockMonths} months
+          </button>
+        </>
+      )}
+
+      {step === 1 && (
+        <div className="text-center py-8">
+          <div className="text-lg mb-2">Transaction submitted</div>
+          <div className="text-sm text-gray-300">Waiting for confirmation…</div>
+          {txHash && <a className="block mt-3 text-cyan-300" href={`${QIE_EXPLORER}/tx/${txHash}`} target="_blank" rel="noreferrer">View tx</a>}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">Token Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="MyToken"
-            className="w-full p-3 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
-            disabled={loading}
-          />
+      {step === 2 && (
+        <div className="text-center py-6">
+          <div className="text-lg font-bold text-green-300 mb-2">Launched ✅</div>
+          {launchedToken && (
+            <a className="text-cyan-300 underline" href={`${QIE_EXPLORER}/token/${launchedToken}`} target="_blank" rel="noreferrer">
+              View token
+            </a>
+          )}
         </div>
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">Symbol</label>
-          <input
-            type="text"
-            value={symbol}
-            onChange={e => setSymbol(e.target.value)}
-            placeholder="MTK"
-            className="w-full p-3 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
-            disabled={loading}
-          />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">Total Supply</label>
-          <input
-            type="text"
-            value={supply}
-            onChange={e => setSupply(e.target.value)}
-            placeholder="1000000"
-            className="w-full p-3 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
-            disabled={loading}
-          />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">QIE for Liquidity</label>
-          <input
-            type="text"
-            value={qie}
-            onChange={e => setQie(e.target.value)}
-            placeholder="0.5"
-            className="w-full p-3 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
-            disabled={loading}
-          />
-        </div>
-      </div>
-
-      <button
-        onClick={handleLaunch}
-        disabled={loading}
-        className="w-full py-4 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Launching...
-          </>
-        ) : (
-          <>
-            <Rocket className="w-5 h-5" />
-            Launch Token
-          </>
-        )}
-      </button>
+      )}
     </div>
-  )
+  );
 }

@@ -1,243 +1,331 @@
-import { useState } from "react"
-import { ethers } from "ethers"
-import { createWeb3Modal, defaultConfig } from "@web3modal/ethers"
-import { Shield, Rocket, Loader2 } from "lucide-react"
+// import { useState } from "react"
+// import { ethers } from "ethers"
+// import { createWeb3Modal, defaultConfig } from "@web3modal/ethers"
+// import { Shield, Rocket, Loader2 } from "lucide-react"
 
-// ---------------------- QIE NETWORK CONFIG -----------------------
-const QIE_TESTNET = {
-  chainId: 1234, // ⚠️ REPLACE WITH ACTUAL QIE TESTNET CHAIN ID
-  name: "QIE Testnet",
-  rpcUrl: "https://rpc1testnet.qie.digital"
-}
+// // ---------------------- QIE NETWORK CONFIG -----------------------
+// const QIE_TESTNET = {
+//   chainId: 1234, // ⚠️ REPLACE WITH ACTUAL QIE TESTNET CHAIN ID
+//   name: "QIE Testnet",
+//   rpcUrl: "https://rpc1testnet.qie.digital"
+// }
 
-// ---------------------- WEB3MODAL SETUP --------------------------
-const projectId = "2c2d9760afb21a2b18f3fa79c18e458a"
+// // ---------------------- WEB3MODAL SETUP --------------------------
+// const projectId = "2c2d9760afb21a2b18f3fa79c18e458a"
 
-const metadata = {
-  name: "SafeMint",
-  description: "Rug-proof token launcher",
-  url: "http://localhost:5173",
-  icons: ["https://walletconnect.com/walletconnect-logo.png"],
-}
+// const metadata = {
+//   name: "SafeMint",
+//   description: "Rug-proof token launcher",
+//   url: "http://localhost:5173",
+//   icons: ["https://walletconnect.com/walletconnect-logo.png"],
+// }
 
-createWeb3Modal({
-  ethersConfig: defaultConfig({ metadata }),
-  chains: [QIE_TESTNET],
-  projectId,
-})
+// createWeb3Modal({
+//   ethersConfig: defaultConfig({ metadata }),
+//   chains: [QIE_TESTNET],
+//   projectId,
+// })
 
-// ---------------------- CONTRACT DATA ----------------------------
-const LAUNCHPAD_ADDRESS = "0x65d52515dcE4e8481aD7aA889F1343d8a0FE0B8d"
+// // ---------------------- CONTRACT DATA ----------------------------
+// const LAUNCHPAD_ADDRESS = "0x65d52515dcE4e8481aD7aA889F1343d8a0FE0B8d"
 
-const launchPadABI = [
-  "function launchFairToken(string name,string symbol,uint256 supply,uint256 lockMonths) payable",
-  "function trustScore(address) view returns(uint8)",
-  "event Launched(address indexed token,uint256 lockTime)"
-]
+// const launchPadABI = [
+//   "function launchFairToken(string name,string symbol,uint256 supply,uint256 lockMonths) payable",
+//   "function trustScore(address) view returns(uint8)",
+//   "event Launched(address indexed token,uint256 lockTime)"
+// ]
+
+// export default function App() {
+//   const [account, setAccount] = useState("")
+//   const [loading, setLoading] = useState(false)
+//   const [txHash, setTxHash] = useState("")
+//   const [tokenAddr, setTokenAddr] = useState("")
+
+//   // Form values
+//   const [name, setName] = useState("MyToken")
+//   const [symbol, setSymbol] = useState("MTK")
+//   const [supply, setSupply] = useState("1000000")
+//   const [qieAmount, setQieAmount] = useState("0.5")
+
+//   // ---------------------- CONNECT WALLET --------------------------
+//   const connectWallet = async () => {
+//     try {
+//       if (!window.ethereum) return alert("Install QIE Wallet / MetaMask")
+
+//       const provider = new ethers.BrowserProvider(window.ethereum)
+//       const signer = await provider.getSigner()
+//       const address = await signer.getAddress()
+
+//       setAccount(address)
+//       console.log("Connected:", address)
+//     } catch (err) {
+//       console.error(err)
+//       alert("Wallet connection failed")
+//     }
+//   }
+
+//   // ---------------------- LAUNCH TOKEN ----------------------------
+//   const launchToken = async () => {
+//     if (!account) return alert("Connect wallet first")
+
+//     setLoading(true)
+
+//     try {
+//       const provider = new ethers.BrowserProvider(window.ethereum)
+//       const signer = await provider.getSigner()
+
+//       const contract = new ethers.Contract(
+//         LAUNCHPAD_ADDRESS,
+//         launchPadABI,
+//         signer
+//       )
+
+//       const totalSupply = ethers.parseEther(supply)
+//       const qieValue = ethers.parseEther(qieAmount)
+
+//       const tx = await contract.launchFairToken(
+//         name,
+//         symbol,
+//         totalSupply,
+//         6,
+//         {
+//           value: qieValue,
+//           gasLimit: 5_000_000n
+//         }
+//       )
+
+//       setTxHash(tx.hash)
+//       console.log("Transaction:", tx.hash)
+
+//       const receipt = await tx.wait()
+
+//       const event = receipt.logs?.find(l => l.fragment?.name === "Launched")
+
+//       if (event) {
+//         setTokenAddr(event.args[0])
+//       } else {
+//         setTokenAddr("Token deployed — check explorer")
+//       }
+
+//       alert("Token launched successfully!")
+//     } catch (e) {
+//       console.error(e)
+//       alert("Launch failed: " + (e.message || e.reason))
+//     }
+
+//     setLoading(false)
+//   }
+
+//   // ---------------------- UI ----------------------------
+//   return (
+//     <div className="min-h-screen p-6">
+//       <div className="max-w-2xl mx-auto">
+//         {/* Title Section */}
+//         <div className="text-center mb-12 mt-12">
+//           <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+//             SafeMint
+//           </h1>
+//           <p className="text-xl text-gray-300">
+//             Rug-proof token launcher on QIE Blockchain
+//           </p>
+//         </div>
+
+//         <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
+
+//           {!account ? (
+//             <div className="text-center py-12">
+//               <button
+//                 onClick={connectWallet}
+//                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-10 rounded-full text-xl flex items-center gap-3 mx-auto shadow-lg"
+//               >
+//                 <Rocket className="w-7 h-7" />
+//                 Connect QIE Wallet
+//               </button>
+//             </div>
+//           ) : (
+//             <>
+//               {/* Connected Address */}
+//               <div className="flex items-center justify-between mb-8 bg-white/10 rounded-xl p-4">
+//                 <span className="text-sm opacity-80">Connected</span>
+//                 <span className="font-mono text-green-400">
+//                   {account.slice(0, 6)}...{account.slice(-4)}
+//                 </span>
+//               </div>
+
+//               {/* Form */}
+//               <div className="grid grid-cols-2 gap-4 mb-6">
+//                 <input
+//                   placeholder="Token Name"
+//                   value={name}
+//                   onChange={e => setName(e.target.value)}
+//                   className="bg-white/10 rounded-xl px-4 py-3"
+//                 />
+//                 <input
+//                   placeholder="Symbol"
+//                   value={symbol}
+//                   onChange={e => setSymbol(e.target.value)}
+//                   className="bg-white/10 rounded-xl px-4 py-3"
+//                 />
+//                 <input
+//                   placeholder="Total Supply"
+//                   value={supply}
+//                   onChange={e => setSupply(e.target.value)}
+//                   className="bg-white/10 rounded-xl px-4 py-3"
+//                 />
+//                 <input
+//                   placeholder="QIE for Liquidity"
+//                   value={qieAmount}
+//                   onChange={e => setQieAmount(e.target.value)}
+//                   className="bg-white/10 rounded-xl px-4 py-3"
+//                 />
+//               </div>
+
+//               {/* Features Box */}
+//               <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl p-6 mb-6 border border-green-500/50">
+//                 <div className="flex items-center gap-3">
+//                   <Shield className="w-10 h-10 text-green-400" />
+//                   <div>
+//                     <div className="font-bold text-xl">100% Safe Features</div>
+//                     <div className="text-sm opacity-90">
+//                       • 6-month liquidity lock • No pre-mine • Green trust badge • 1% burn tax
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               {/* Launch Button */}
+//               <button
+//                 onClick={launchToken}
+//                 disabled={loading}
+//                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-2xl py-6 rounded-2xl flex items-center justify-center gap-4 shadow-2xl disabled:opacity-70"
+//               >
+//                 {loading ? (
+//                   <Loader2 className="w-8 h-8 animate-spin" />
+//                 ) : (
+//                   <>
+//                     <Rocket className="w-8 h-8" />
+//                     LAUNCH RUG-PROOF TOKEN
+//                   </>
+//                 )}
+//               </button>
+
+//               {/* Explorer Link */}
+//               {txHash && (
+//                 <div className="mt-6 text-center space-y-2">
+//                   <a
+//                     href={`https://testnet.qie.digital/tx/${txHash}`}
+//                     target="_blank"
+//                     className="text-cyan-400 underline"
+//                   >
+//                     View Transaction
+//                   </a>
+//                   {tokenAddr && (
+//                     <div className="text-sm text-gray-300">
+//                       <p>Token Address:</p>
+//                       <p className="font-mono text-green-400">{tokenAddr}</p>
+//                     </div>
+//                   )}
+//                 </div>
+//               )}
+//             </>
+//           )}
+//         </div>
+
+//         <div className="text-center mt-12 text-gray-400">
+//           Built for QIE Blockchain Hackathon • 100% open source • Zero rugs allowed
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
+/*
+import React from "react";
+import Header from "./components/Header";
+import LaunchForm from "./components/LaunchForm";
+import useWallet from "./hooks/useWallet";
 
 export default function App() {
-  const [account, setAccount] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [txHash, setTxHash] = useState("")
-  const [tokenAddr, setTokenAddr] = useState("")
+  const { address, provider, connect } = useWallet();
 
-  // Form values
-  const [name, setName] = useState("MyToken")
-  const [symbol, setSymbol] = useState("MTK")
-  const [supply, setSupply] = useState("1000000")
-  const [qieAmount, setQieAmount] = useState("0.5")
-
-  // ---------------------- CONNECT WALLET --------------------------
-  const connectWallet = async () => {
-    try {
-      if (!window.ethereum) return alert("Install QIE Wallet / MetaMask")
-
-      const provider = new ethers.BrowserProvider(window.ethereum)
-      const signer = await provider.getSigner()
-      const address = await signer.getAddress()
-
-      setAccount(address)
-      console.log("Connected:", address)
-    } catch (err) {
-      console.error(err)
-      alert("Wallet connection failed")
-    }
-  }
-
-  // ---------------------- LAUNCH TOKEN ----------------------------
-  const launchToken = async () => {
-    if (!account) return alert("Connect wallet first")
-
-    setLoading(true)
-
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum)
-      const signer = await provider.getSigner()
-
-      const contract = new ethers.Contract(
-        LAUNCHPAD_ADDRESS,
-        launchPadABI,
-        signer
-      )
-
-      const totalSupply = ethers.parseEther(supply)
-      const qieValue = ethers.parseEther(qieAmount)
-
-      const tx = await contract.launchFairToken(
-        name,
-        symbol,
-        totalSupply,
-        6,
-        {
-          value: qieValue,
-          gasLimit: 5_000_000n
-        }
-      )
-
-      setTxHash(tx.hash)
-      console.log("Transaction:", tx.hash)
-
-      const receipt = await tx.wait()
-
-      const event = receipt.logs?.find(l => l.fragment?.name === "Launched")
-
-      if (event) {
-        setTokenAddr(event.args[0])
-      } else {
-        setTokenAddr("Token deployed — check explorer")
-      }
-
-      alert("Token launched successfully!")
-    } catch (e) {
-      console.error(e)
-      alert("Launch failed: " + (e.message || e.reason))
-    }
-
-    setLoading(false)
-  }
-
-  // ---------------------- UI ----------------------------
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-2xl mx-auto">
-        {/* Title Section */}
-        <div className="text-center mb-12 mt-12">
-          <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
-            SafeMint
-          </h1>
-          <p className="text-xl text-gray-300">
-            Rug-proof token launcher on QIE Blockchain
-          </p>
+      <div className="max-w-3xl mx-auto">
+        <Header address={address} onConnect={async () => {
+          try { await connect(); } catch (e) { alert(e.message || "Connect failed"); }
+        }} />
+
+        <div className="bg-white/6 p-6 rounded-xl">
+          <LaunchForm provider={provider} account={address} />
         </div>
 
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
-
-          {!account ? (
-            <div className="text-center py-12">
-              <button
-                onClick={connectWallet}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-10 rounded-full text-xl flex items-center gap-3 mx-auto shadow-lg"
-              >
-                <Rocket className="w-7 h-7" />
-                Connect QIE Wallet
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Connected Address */}
-              <div className="flex items-center justify-between mb-8 bg-white/10 rounded-xl p-4">
-                <span className="text-sm opacity-80">Connected</span>
-                <span className="font-mono text-green-400">
-                  {account.slice(0, 6)}...{account.slice(-4)}
-                </span>
-              </div>
-
-              {/* Form */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <input
-                  placeholder="Token Name"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="bg-white/10 rounded-xl px-4 py-3"
-                />
-                <input
-                  placeholder="Symbol"
-                  value={symbol}
-                  onChange={e => setSymbol(e.target.value)}
-                  className="bg-white/10 rounded-xl px-4 py-3"
-                />
-                <input
-                  placeholder="Total Supply"
-                  value={supply}
-                  onChange={e => setSupply(e.target.value)}
-                  className="bg-white/10 rounded-xl px-4 py-3"
-                />
-                <input
-                  placeholder="QIE for Liquidity"
-                  value={qieAmount}
-                  onChange={e => setQieAmount(e.target.value)}
-                  className="bg-white/10 rounded-xl px-4 py-3"
-                />
-              </div>
-
-              {/* Features Box */}
-              <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl p-6 mb-6 border border-green-500/50">
-                <div className="flex items-center gap-3">
-                  <Shield className="w-10 h-10 text-green-400" />
-                  <div>
-                    <div className="font-bold text-xl">100% Safe Features</div>
-                    <div className="text-sm opacity-90">
-                      • 6-month liquidity lock • No pre-mine • Green trust badge • 1% burn tax
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Launch Button */}
-              <button
-                onClick={launchToken}
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-2xl py-6 rounded-2xl flex items-center justify-center gap-4 shadow-2xl disabled:opacity-70"
-              >
-                {loading ? (
-                  <Loader2 className="w-8 h-8 animate-spin" />
-                ) : (
-                  <>
-                    <Rocket className="w-8 h-8" />
-                    LAUNCH RUG-PROOF TOKEN
-                  </>
-                )}
-              </button>
-
-              {/* Explorer Link */}
-              {txHash && (
-                <div className="mt-6 text-center space-y-2">
-                  <a
-                    href={`https://testnet.qie.digital/tx/${txHash}`}
-                    target="_blank"
-                    className="text-cyan-400 underline"
-                  >
-                    View Transaction
-                  </a>
-                  {tokenAddr && (
-                    <div className="text-sm text-gray-300">
-                      <p>Token Address:</p>
-                      <p className="font-mono text-green-400">{tokenAddr}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        <div className="text-center mt-12 text-gray-400">
-          Built for QIE Blockchain Hackathon • 100% open source • Zero rugs allowed
-        </div>
+        <div className="text-center mt-6 text-gray-400">Built for QIE Hackathon</div>
       </div>
     </div>
-  )
+  );
 }
+
+*/
+
+import React from "react";
+import { Link } from "react-router-dom";
+
+export default function HomeHero({ onLaunch }) {
+  return (
+    <div className="max-w-6xl mx-auto p-10 mt-10">
+
+      <div className="grid grid-cols-2 gap-12 items-center">
+
+        {/* LEFT SIDE */}
+        <div>
+          <h2 className="text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-green-300 to-blue-400 leading-tight drop-shadow-lg">
+            Launch<br />Rug-Proof Tokens
+          </h2>
+
+          <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+            Create a fair-launch token, auto-lock liquidity, verify trust score,  
+            and get a green badge.  
+            <span className="text-gray-400 block mt-1">— SafeMint Demo Mode</span>
+          </p>
+
+          <div className="flex gap-4">
+            <button
+              onClick={onLaunch}
+              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-green-400 to-emerald-600 text-white font-bold text-lg shadow-xl hover:opacity-90 transition"
+            >
+              Launch Fair Token
+            </button>
+
+            <Link
+              to="/explorer"
+              className="px-8 py-4 rounded-2xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
+            >
+              Explore Tokens
+            </Link>
+          </div>
+        </div>
+
+        {/* RIGHT SIDE — FEATURED CARD MOCKUP */}
+        <div className="bg-white/10 p-6 rounded-3xl shadow-2xl border border-white/10 backdrop-blur-xl">
+          <div className="text-sm text-gray-300 mb-4">Featured Token</div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-5 bg-white/5 rounded-2xl border border-white/10 shadow-lg">
+              <div className="h-32 w-full bg-white/10 rounded-xl"></div>
+              <p className="mt-2 text-gray-400 text-sm">Preview Card</p>
+            </div>
+
+            <div className="p-5 bg-white/5 rounded-2xl border border-white/10 shadow-lg">
+              <div className="h-32 w-full bg-white/10 rounded-xl"></div>
+              <p className="mt-2 text-gray-400 text-sm">Trust Badge + Stats</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
 
 /*
 
