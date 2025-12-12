@@ -1,20 +1,36 @@
-// src/pages/TokenList.jsx
 import React, { useEffect, useState } from "react";
-import SkeletonCard from "../components/SkeletonCard";
 import TokenCard from "../components/TokenCard";
 import { INDEXER_URL } from "../config";
 
 export default function TokenList() {
   const [tokens, setTokens] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortMode, setSortMode] = useState("newest");
 
-  async function loadTokens() {
+  function getCache(key) {
     try {
-      setLoading(true);
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function setCache(key, data) {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  async function fetchTokens() {
+    setLoading(true);
+    try {
       const res = await fetch(`${INDEXER_URL}/tokens`);
-      const list = await res.json();
-      setTokens(list);
+      const data = await res.json();
+      // indexer might return object map or array
+      const list = Array.isArray(data) ? data : (Array.isArray(data.tokens) ? data.tokens : Object.values(data || {}));
+      setTokens(list.reverse ? list.reverse() : list);
     } catch (err) {
       console.error("Failed to fetch tokens", err);
     } finally {
@@ -22,52 +38,36 @@ export default function TokenList() {
     }
   }
 
-  /* Auto-load */
   useEffect(() => {
-    loadTokens();
-  }, []);
+    async function load() {
+      const cached = getCache("tokens");
+      if (cached) setTokens(cached);
 
-  /* ---- Optimistic Refresh ---- */
-  useEffect(() => {
-    function handleNewToken(e) {
-      setTokens((prev) => [e.detail, ...prev]);
+      const res = await fetch(`${INDEXER_URL}/tokens`);
+      const fresh = await res.json();
+      setTokens(fresh);
+      setCache("tokens", fresh);
     }
-    window.addEventListener("token-launched", handleNewToken);
-    return () => window.removeEventListener("token-launched", handleNewToken);
-  }, []);
+    load();
 
-  /* ---- Sorting ---- */
-  const sorted = [...tokens].sort((a, b) => {
-    if (sortMode === "newest") return (b.timestamp || 0) - (a.timestamp || 0);
-    if (sortMode === "locked") return (b.lockMonths || 0) - (a.lockMonths || 0);
-    if (sortMode === "trust") return (b.trustScore || 0) - (a.trustScore || 0);
-    return 0;
-  });
+    const t = setInterval(fetchTokens, 5000); // refresh
+    return () => clearInterval(t);
+  }, []);
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-6 text-white">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-4xl font-bold">Explore Tokens</h1>
+    <div className="token-list">
+      <header className="page-header">
+        <h1>Latest Launches</h1>
+        <p className="muted">Live — shows trust score, liquidity, and lock status.</p>
+      </header>
 
-        <select
-          value={sortMode}
-          onChange={(e) => setSortMode(e.target.value)}
-          className="p-2 bg-white/10 border border-white/20 rounded-xl"
-        >
-          <option value="newest">Newest</option>
-          <option value="locked">Most Locked</option>
-          <option value="trust">Highest Trust</option>
-        </select>
-      </div>
+      {loading && <div className="loader">Loading launches…</div>}
 
-      {/* Token Grid */}
-      <div className="grid grid-cols-3 gap-6">
-        {loading
-          ? [...Array(6)].map((_, i) => <SkeletonCard key={i} />)
-          : sorted.map((token) => <TokenCard key={token.tokenAddress} token={token} />)}
+      <div className="grid">
+        {tokens && tokens.length ? tokens.map((t) => (
+          <TokenCard key={t.tokenAddress || t.address} token={t} />
+        )) : !loading && <div className="empty">No tokens yet.</div>}
       </div>
     </div>
   );
 }
-

@@ -1,40 +1,24 @@
+// src/components/UploadPreview.jsx
 import React, { useState } from "react";
-import { Web3Storage } from "web3.storage";
-import { WEB3STORAGE_KEY } from "../config";
 
 export default function UploadPreview({ onUploaded }) {
   const [preview, setPreview] = useState(null);
-  const [uploading, setUploading] = useState(false);
 
   async function handleFile(e) {
-    const f = e.target.files?.[0];
+    const f = e.target.files[0];
     if (!f) return;
+    // For demo: we won't upload to IPFS automatically (you can integrate web3.storage)
+    // We'll create a fake cid using timestamp so indexer shows preview via local fallback.
+    const cid = "demo-" + Date.now();
     setPreview(URL.createObjectURL(f));
-    if (!WEB3STORAGE_KEY) {
-      onUploaded?.({ cid: null, url: URL.createObjectURL(f) });
-      return;
-    }
-    setUploading(true);
-    try {
-      const client = new Web3Storage({ token: WEB3STORAGE_KEY });
-      const cid = await client.put([f], { wrapWithDirectory: false });
-      const url = `https://${cid}.ipfs.w3s.link/`;
-      onUploaded?.({ cid, url });
-    } catch (err) {
-      console.error(err);
-      alert("IPFS upload failed — continuing with local preview");
-      onUploaded?.({ cid: null, url: URL.createObjectURL(f) });
-    } finally {
-      setUploading(false);
-    }
+    onUploaded({ cid, name: f.name, preview });
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm text-gray-300">Token image (meme)</label>
+    <div>
       <input type="file" accept="image/*" onChange={handleFile} />
-      {preview && <img src={preview} alt="preview" className="w-36 h-36 mt-2 object-cover rounded-xl shadow-lg" />}
-      {uploading && <div className="text-sm text-gray-400">Uploading to IPFS…</div>}
+      {preview && <img src={preview} alt="preview" className="mt-2 w-32 h-32 object-cover rounded-md" />}
+      <div className="text-xs text-gray-400 mt-1">Image is optional. For production, wire IPFS upload.</div>
     </div>
   );
 }

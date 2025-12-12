@@ -1,10 +1,33 @@
+import React, { useEffect, useState } from "react";
+
 export default function LockTimer({ unlockTime }) {
-  if (!unlockTime) return null;
+  const [remaining, setRemaining] = useState(calcRemaining(unlockTime));
 
-  const remaining = unlockTime * 1000 - Date.now();
-  if (remaining <= 0) return <div>Unlocked</div>;
+  useEffect(() => {
+    const id = setInterval(() => setRemaining(calcRemaining(unlockTime)), 1000);
+    return () => clearInterval(id);
+  }, [unlockTime]);
 
-  const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+  if (!unlockTime) return <span>—</span>;
 
-  return <div className="text-gray-300">{days} days remaining</div>;
+  if (remaining.total <= 0) return <span>Unlocked</span>;
+
+  return (
+    <span>
+      {remaining.days}d {remaining.hours}h {remaining.minutes}m
+    </span>
+  );
+}
+
+function calcRemaining(unix) {
+  let t = (Number(unix) * 1000) - Date.now();
+  if (isNaN(t) || t <= 0) return { total: 0, days: 0, hours: 0, minutes: 0 };
+  
+  const total = t;
+  const days = Math.floor(t / (1000 * 60 * 60 * 24));
+  t -= days * (1000 * 60 * 60 * 24);
+  const hours = Math.floor(t / (1000 * 60 * 60));
+  t -= hours * (1000 * 60 * 60);
+  const minutes = Math.floor(t / (1000 * 60));
+  return { total, days, hours, minutes };
 }

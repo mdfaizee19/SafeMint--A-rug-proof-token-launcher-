@@ -266,62 +266,88 @@ export default function App() {
 
 */
 
-import React from "react";
-import { Link } from "react-router-dom";
+// import React from "react";
+// import { Link } from "react-router-dom";
 
-export default function HomeHero({ onLaunch }) {
+// export default function HomeHero({ onLaunch }) {
+//   return (
+//     <div className="max-w-6xl mx-auto p-10 mt-10">
+
+//       <div className="grid grid-cols-2 gap-12 items-center">
+
+//         {/* LEFT SIDE */}
+//         <div>
+//           <h2 className="text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-green-300 to-blue-400 leading-tight drop-shadow-lg">
+//             Launch<br />Rug-Proof Tokens
+//           </h2>
+
+//           <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+//             Create a fair-launch token, auto-lock liquidity, verify trust score,  
+//             and get a green badge.  
+//             <span className="text-gray-400 block mt-1">— SafeMint Demo Mode</span>
+//           </p>
+
+//           <div className="flex gap-4">
+//             <button
+//               onClick={onLaunch}
+//               className="px-8 py-4 rounded-2xl bg-gradient-to-r from-green-400 to-emerald-600 text-white font-bold text-lg shadow-xl hover:opacity-90 transition"
+//             >
+//               Launch Fair Token
+//             </button>
+
+//             <Link
+//               to="/explorer"
+//               className="px-8 py-4 rounded-2xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
+//             >
+//               Explore Tokens
+//             </Link>
+//           </div>
+//         </div>
+
+//         {/* RIGHT SIDE — FEATURED CARD MOCKUP */}
+//         <div className="bg-white/10 p-6 rounded-3xl shadow-2xl border border-white/10 backdrop-blur-xl">
+//           <div className="text-sm text-gray-300 mb-4">Featured Token</div>
+
+//           <div className="grid grid-cols-2 gap-4">
+//             <div className="p-5 bg-white/5 rounded-2xl border border-white/10 shadow-lg">
+//               <div className="h-32 w-full bg-white/10 rounded-xl"></div>
+//               <p className="mt-2 text-gray-400 text-sm">Preview Card</p>
+//             </div>
+
+//             <div className="p-5 bg-white/5 rounded-2xl border border-white/10 shadow-lg">
+//               <div className="h-32 w-full bg-white/10 rounded-xl"></div>
+//               <p className="mt-2 text-gray-400 text-sm">Trust Badge + Stats</p>
+//             </div>
+//           </div>
+//         </div>
+
+//       </div>
+//     </div>
+//   );
+// }
+// frontend/src/App.jsx (only core snippet)
+// App.jsx
+import React, { useState } from "react";
+import { Routes, Route } from "react-router-dom";
+import NavBar from "./components/NavBar";
+import TokenList from "./pages/TokenList";
+import TokenPage from "./pages/TokenPage";
+import LaunchModal from "./components/LaunchModal";
+
+export default function App() {
+  const [launchOpen, setLaunchOpen] = useState(false);
+
   return (
-    <div className="max-w-6xl mx-auto p-10 mt-10">
+    <div className="app-root">
+      <NavBar onOpenLaunch={() => setLaunchOpen(true)} />
+      <main className="container">
+        <Routes>
+          <Route path="/" element={<TokenList />} />
+          <Route path="/token/:address" element={<TokenPage />} />
+        </Routes>
+      </main>
 
-      <div className="grid grid-cols-2 gap-12 items-center">
-
-        {/* LEFT SIDE */}
-        <div>
-          <h2 className="text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-green-300 to-blue-400 leading-tight drop-shadow-lg">
-            Launch<br />Rug-Proof Tokens
-          </h2>
-
-          <p className="text-gray-300 text-lg mb-8 leading-relaxed">
-            Create a fair-launch token, auto-lock liquidity, verify trust score,  
-            and get a green badge.  
-            <span className="text-gray-400 block mt-1">— SafeMint Demo Mode</span>
-          </p>
-
-          <div className="flex gap-4">
-            <button
-              onClick={onLaunch}
-              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-green-400 to-emerald-600 text-white font-bold text-lg shadow-xl hover:opacity-90 transition"
-            >
-              Launch Fair Token
-            </button>
-
-            <Link
-              to="/explorer"
-              className="px-8 py-4 rounded-2xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
-            >
-              Explore Tokens
-            </Link>
-          </div>
-        </div>
-
-        {/* RIGHT SIDE — FEATURED CARD MOCKUP */}
-        <div className="bg-white/10 p-6 rounded-3xl shadow-2xl border border-white/10 backdrop-blur-xl">
-          <div className="text-sm text-gray-300 mb-4">Featured Token</div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-5 bg-white/5 rounded-2xl border border-white/10 shadow-lg">
-              <div className="h-32 w-full bg-white/10 rounded-xl"></div>
-              <p className="mt-2 text-gray-400 text-sm">Preview Card</p>
-            </div>
-
-            <div className="p-5 bg-white/5 rounded-2xl border border-white/10 shadow-lg">
-              <div className="h-32 w-full bg-white/10 rounded-xl"></div>
-              <p className="mt-2 text-gray-400 text-sm">Trust Badge + Stats</p>
-            </div>
-          </div>
-        </div>
-
-      </div>
+      {launchOpen && <LaunchModal onClose={() => setLaunchOpen(false)} />}
     </div>
   );
 }

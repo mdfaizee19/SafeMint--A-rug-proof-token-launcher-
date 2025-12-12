@@ -1,16 +1,27 @@
-// frontend/src/components/TrustBadge.jsx
 import React from "react";
 
-export default function TrustBadge({ score = 2 }) {
-  const map = {
-    2: { label: "GREEN", color: "text-green-400", bg: "bg-green-900/20" },
-    1: { label: "YELLOW", color: "text-yellow-300", bg: "bg-yellow-900/20" },
-    0: { label: "RED", color: "text-red-400", bg: "bg-red-900/20" }
-  };
-  const s = map[score] || map[1];
+/**
+ * Trust rules:
+ * green => unlockTime in future AND trustScore >=2 && no premine
+ * yellow => trustScore == 1
+ * red => trustScore == 0 OR unlockTime in past
+ */
+export default function TrustBadge({ token = {} }) {
+  const unlockTime = Number(token.unlockTime || token.unlock || 0);
+  const trustScore = Number(token.trustScore ?? 1);
+
+  let color = "yellow";
+  const now = Math.floor(Date.now()/1000);
+
+  if (unlockTime > now && trustScore >= 2) color = "green";
+  if (unlockTime <= now || trustScore === 0) color = "red";
+
+  const label = color === "green" ? "Safe" : color === "yellow" ? "Caution" : "Risk";
+
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${s.color} ${s.bg} border border-white/10`}>
-      {s.label}
-    </span>
+    <div className={`trust-badge trust-${color}`}>
+      <div className="dot" />
+      <div className="label">{label}</div>
+    </div>
   );
 }

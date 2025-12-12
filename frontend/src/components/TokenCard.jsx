@@ -1,35 +1,36 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { IPFS_GATEWAY } from "../config";
 import TrustBadge from "./TrustBadge";
+import Sparkline from "./Sparkline";
+import { Link } from "react-router-dom";
 
-export default function TokenCard({ token }) {
-  const image = token.imageCid 
-    ? `https://ipfs.io/ipfs/${token.imageCid}`
-    : "/placeholder.png";
+export default function TokenCard({ token = {} }) {
+  // defensive normalisation
+  const addr = token.tokenAddress || token.address || "0xUNKNOWN";
+  const liquidity = Number(token.liquidityQIE || 0);
+  const supply = Number(token.totalSupply || token.totalSupply || 0);
+  const name = token.name || token.symbol || addr.slice(0,8);
+
+  const image = token.imageCid ? IPFS_GATEWAY(token.imageCid) : null;
 
   return (
-    <Link
-      to={`/token/${token.token}`}
-      className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition"
-    >
-      {/* Image */}
-      <div className="h-32 w-full bg-white/10 rounded-xl overflow-hidden">
-        <img src={image} alt="" className="w-full h-full object-cover" />
+    <Link to={`/token/${addr}`} className="card token-card">
+      <div className="card-left">
+        <div className="avatar">{image ? <img src={image} alt={name} /> : <div className="avatar-fallback">{name[0]}</div>}</div>
+        <div className="meta">
+          <div className="title">{name}</div>
+          <div className="subtitle">{addr}</div>
+        </div>
       </div>
 
-      {/* Name */}
-      <div className="mt-3 text-lg font-semibold text-white">
-        {token.name || "Unnamed"}
+      <div className="card-mid">
+        <Sparkline data={[5,10,6,9,15,8,12]} />
+        <div className="liquidity">{isNaN(liquidity) ? "—" : `${liquidity.toFixed(2)} QIE`}</div>
       </div>
 
-      {/* Symbol + Trust Badge */}
-      <div className="flex items-center justify-between mt-2 text-gray-300">
-        <span>{token.symbol}</span>
-        <TrustBadge score={token.trustScore || 2} />
-        { token.withdrawn && <span className="text-xs bg-gray-700 px-2 py-1 rounded">Withdrawn</span> }
-
+      <div className="card-right">
+        <TrustBadge token={token} />
       </div>
     </Link>
   );
 }
-

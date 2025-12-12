@@ -1,0 +1,9 @@
+/* small accent theme file with premium neon look */
+:root{
+  --accent-1: #00f2ff;
+  --accent-2: #00c2ff;
+  --bg-1: #061019;
+  --card-grad: linear-gradient(180deg, rgba(0,242,255,0.03), rgba(0,200,255,0.01));
+}
+body { background: radial-gradient(1200px 600px at 10% 10%, rgba(0,242,255,0.02), transparent), var(--bg-1); }
+.logo .accent { color: var(--accent-1); margin-left:6px; font-weight:700; }
