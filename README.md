@@ -6,7 +6,15 @@ Instead of letting anyone create dangerous tokens, QIEDEX enforces **fair launch
 This project is built for the **QIE Blockchain**.
 
 ---
+## How to Run the Project (Using Docker)
 
+```bash
+docker run -p 4000:4000 madhesh00/qie-indexer:latest[http://localhost:4000]
+docker run -p 5173:80 madhesh00/qie-frontend:latest[http://localhost:5713]
+docker compose up
+````
+
+---
 ## What Problem This Solves
 
 Today in token platforms:
