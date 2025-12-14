@@ -70,28 +70,6 @@ flowchart LR
 ```
 
 
----
-
-## File Structure (Simple View)
-
-```
-qiedex
-├── backend
-│   ├── routes
-│   ├── controllers
-│   ├── services
-│   ├── liquidity
-│   └── server.js
-│
-├── frontend
-│   ├── src
-│   │   ├── pages
-│   │   ├── components
-│   │   └── utils
-│   └── vite.config.js
-│
-└── README.md
-```
 
 ---
 
@@ -115,6 +93,9 @@ Make sure you have:
 - npm
 - Git
 - Docker
+- Node
+
+
 
 ---
 
@@ -140,8 +121,8 @@ Backend runs on:
 
 ```
 http://localhost:4000
-http://localhost:4000/token [for real time tokens]
-http://localhost:4000/token/{0Xaddress} [token details for a particular user]
+http://localhost:4000/tokens [for real time tokens]
+http://localhost:4000/tokens/{0Xaddress} [token details for a particular user]
 ```
 
 ---
