@@ -1,15 +1,15 @@
 // src/main.jsx
 import ReactDOM from "react-dom/client"
-import App from "./App"
 import { BrowserRouter } from "react-router-dom"
-import { WalletProvider } from "./context/WalletContext"
+import { WagmiProvider } from "wagmi"
+import { wagmiConfig } from "./lib/walletConfig"
+import App from "./App"
 import "./index.css"
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <WalletProvider>
-  <BrowserRouter>
+  <WagmiProvider config={wagmiConfig}>
+    <BrowserRouter>
       <App />
-  </BrowserRouter>
-  </WalletProvider>
-  
+    </BrowserRouter>
+  </WagmiProvider>
 )

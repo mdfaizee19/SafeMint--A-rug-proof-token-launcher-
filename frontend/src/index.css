@@ -1,23 +1,27 @@
 /* =========================================================
-   1. DESIGN TOKENS (GLOBAL THEME)
+   1. DESIGN TOKENS (ELEGANT MINIMAL THEME)
    ========================================================= */
 :root {
   /* Backgrounds */
-  --bg-main: #fff5ed;        /* MetaMask beige */
-  --bg-surface: #ffffff;    /* Cards */
-  --bg-dark: #0f0f0f;
+  --bg-main: #fafaf9;
+  --bg-surface: #ffffff;
+  --bg-dark: #18181b;
 
   /* Text */
-  --text-main: #0f0f0f;
-  --text-muted: #6b7280;
-  --text-invert: #ffffff;
+  --text-main: #18181b;
+  --text-muted: #71717a;
+  --text-invert: #fafaf9;
 
   /* Borders */
-  --border-light: rgba(0, 0, 0, 0.08);
+  --border-light: #e4e4e7;
 
+  /* Accents */
+  --accent: #18181b;
+  --accent-hover: #27272a;
+  
   /* Status colors */
-  --green: #22c55e;
-  --yellow: #eab308;
+  --green: #10b981;
+  --yellow: #f59e0b;
   --red: #ef4444;
 }
 
@@ -39,41 +43,42 @@ body,
 body {
   background: var(--bg-main);
   color: var(--text-main);
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, sans-serif;
-  line-height: 1.5;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* =========================================================
    3. NAVBAR (GLOBAL)
    ========================================================= */
 .nav {
-  height: 64px;
-  padding: 0 32px;
+  height: 72px;
+  padding: 0 48px;
   background: var(--bg-main);
   border-bottom: 1px solid var(--border-light);
-
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .logo {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
 }
 
 .nav-links {
   display: flex;
-  gap: 24px;
+  gap: 32px;
 }
 
 .nav-links a {
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
   color: var(--text-muted);
+  transition: color 0.2s ease;
 }
 
 .nav-links a:hover {
@@ -82,18 +87,22 @@ body {
 
 .nav-links a.active {
   color: var(--text-main);
-  border-bottom: 2px solid var(--text-main);
-  padding-bottom: 4px;
 }
 
 .btn {
   background: var(--bg-dark);
   color: var(--text-invert);
   border: none;
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background: var(--accent-hover);
 }
 
 /* =========================================================
@@ -102,20 +111,22 @@ body {
 .page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 48px 32px;
+  padding: 64px 48px;
 }
 
 h2 {
-  font-size: 48px;
-  font-weight: 900;
-  letter-spacing: -1px;
-  margin-bottom: 32px;
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin-bottom: 40px;
+  color: var(--text-main);
 }
 
 .muted {
   color: var(--text-muted);
-  font-size: 14px;
-  margin-bottom: 24px;
+  font-size: 15px;
+  margin-bottom: 32px;
+  line-height: 1.7;
 }
 
 /* =========================================================
@@ -123,27 +134,29 @@ h2 {
    ========================================================= */
 .token-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
 }
 
 .token-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 12px;
+  padding: 28px;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .token-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 .token-card h3 {
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 600;
   margin-bottom: 8px;
+  letter-spacing: -0.3px;
 }
 
 .liquidity {
@@ -152,26 +165,95 @@ h2 {
   margin-bottom: 16px;
 }
 
+/* ===================== SECTIONS ===================== */
+.section {
+  margin-bottom: 72px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 32px;
+}
+
+/* ===================== STATS ===================== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 600;
+  display: block;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ===================== PREVIEWS ===================== */
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.preview-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.25s ease;
+}
+
+.preview-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+/* ===================== TOKEN LINK ===================== */
+.token-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 /* =========================================================
    6. VALIDATORS PAGE
    ========================================================= */
 .validator-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
 }
 
 .validator-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 12px;
+  padding: 28px;
 }
 
 .validator-card h3 {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 600;
   margin-bottom: 12px;
+  letter-spacing: -0.3px;
 }
 
 /* =========================================================
@@ -179,30 +261,31 @@ h2 {
    ========================================================= */
 .proposal-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 24px;
 }
 
 .proposal-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 12px;
+  padding: 28px;
 }
 
 .proposal-card h3 {
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 16px;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: -0.3px;
 }
 
 .vote-bar {
   display: flex;
-  height: 10px;
-  border-radius: 999px;
+  height: 8px;
+  border-radius: 4px;
   overflow: hidden;
-  background: #eee;
-  margin-bottom: 12px;
+  background: #f4f4f5;
+  margin-bottom: 16px;
 }
 
 .vote.yes {
@@ -222,6 +305,7 @@ h2 {
 .vote-text {
   font-size: 13px;
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 /* =========================================================
@@ -230,119 +314,144 @@ h2 {
 .trust,
 .status {
   display: inline-block;
-  padding: 6px 14px;
-  border-radius: 999px;
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .trust.green,
 .status.passed {
-  background: rgba(34, 197, 94, 0.15);
+  background: rgba(16, 185, 129, 0.1);
   color: var(--green);
 }
 
 .trust.yellow,
 .status.active {
-  background: rgba(234, 179, 8, 0.15);
+  background: rgba(245, 158, 11, 0.1);
   color: var(--yellow);
 }
 
 .trust.red,
 .status.rejected {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.1);
   color: var(--red);
 }
 
 /* =========================================================
-   9. TOKEN DETAILS PAGE
+   LAUNCH TOKEN PAGE (ELEGANT STYLE)
    ========================================================= */
-.trust-box {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin: 24px 0 32px;
+
+/* Page heading */
+.page h2 {
+  font-size: 36px;
+  font-weight: 600;
+  margin-bottom: 40px;
+  color: var(--text-main);
 }
 
-.graph-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 24px;
-}
-
-.graph-card h3 {
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 16px;
-}
-
-code {
-  background: #f3f4f6;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-}
-/* =========================================================
-   LAUNCH TOKEN – HORIZONTAL FORM
-   ========================================================= */
+/* Launch card container */
 .launch-card.horizontal {
-  max-width: 720px;
+  max-width: 800px;
   background: var(--bg-surface);
+  border-radius: 16px;
   border: 1px solid var(--border-light);
-  border-radius: 24px;
-  padding: 32px;
-}
-
-/* Each row = label + input */
-.form-row {
+  padding: 40px;
   display: grid;
-  grid-template-columns: 180px 1fr;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 18px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
-/* Label */
-.form-row label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-/* Input */
-.form-row input {
-  padding: 12px 14px;
-  font-size: 14px;
-  border-radius: 12px;
+/* Inputs */
+.launch-card.horizontal input {
+  height: 48px;
+  padding: 0 16px;
+  font-size: 15px;
+  border-radius: 8px;
   border: 1px solid var(--border-light);
   outline: none;
+  background: var(--bg-surface);
+  font-family: inherit;
+  color: var(--text-main);
+  transition: all 0.2s ease;
 }
 
-.form-row input:focus {
-  border-color: #000;
+/* Input focus */
+.launch-card.horizontal input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.05);
 }
 
-/* Button */
+/* Lock months field */
+.launch-card.horizontal input[name="lockMonths"] {
+  max-width: 140px;
+}
+
+/* Make last row span */
+.launch-card.horizontal input[name="liquidityEth"] {
+  grid-column: span 2;
+}
+
+/* Primary launch button */
 .primary-btn {
-  margin-top: 24px;
-  width: 100%;
-  background: #000;
-  color: #fff;
+  grid-column: span 3;
+  margin-top: 16px;
+  height: 52px;
+  background: var(--bg-dark);
+  color: var(--text-invert);
   border: none;
-  padding: 14px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 800;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* =========================
-   RESPONSIVE FALLBACK
-   ========================= */
+.primary-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 768px) {
+  .nav {
+    padding: 0 24px;
+  }
+
+  .page {
+    padding: 48px 24px;
+  }
+
+  h2 {
+    font-size: 28px;
+  }
+
+  .launch-card.horizontal {
+    grid-template-columns: 1fr;
+    padding: 32px;
+  }
+
+  .primary-btn {
+    grid-column: span 1;
+  }
+
+  .launch-card.horizontal input[name="liquidityEth"] {
+    grid-column: span 1;
+  }
+}
+
 @media (max-width: 640px) {
   .form-row {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 12px;
+  }
+
+  .token-grid,
+  .validator-grid,
+  .proposal-grid {
+    grid-template-columns: 1fr;
   }
 }
