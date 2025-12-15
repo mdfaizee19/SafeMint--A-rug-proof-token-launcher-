@@ -455,3 +455,79 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+/* ================= VALIDATOR PAGE ================= */
+
+.graph-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.trust-summary {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.validator-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+/* ================= GOVERNANCE ================= */
+
+.proposal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 24px;
+}
+
+.proposal-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.vote-bar {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 16px 0;
+  display: flex;
+}
+
+.vote.yes {
+  background: #22c55e;
+}
+
+.vote.no {
+  background: #ef4444;
+}
+
+.proposal-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.proposal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status.active {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.status.passed {
+  color: #22c55e;
+  font-weight: 700;
+}
