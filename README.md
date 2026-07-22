@@ -32,6 +32,10 @@ QIEDEX fixes this **by force, not by trust**.
 
 ---
 
+##Architecture Diagram simpler 
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/c062c7a7-b7b5-4fa0-a8b2-c598934061fb" />
+
+
 ## Workflow Explained (Very Simple)
 
 ### Step 1 – Token Creation
