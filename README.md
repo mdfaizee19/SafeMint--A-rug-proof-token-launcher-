@@ -3,8 +3,8 @@
 SafeMint is a **free token creator and liquidity platform** built for the QIE blockchain that focuses on **killing scams, rug-pulls, and fake projects by design**with a real world impact.  
 Instead of letting anyone create dangerous tokens, QIEDEX enforces **fair launch, locked liquidity, and visible trust signals** from day one.
 
-This project is built for the **QIE Blockchain**.
-
+This project is built for the **QIE Blockchain**. 
+link : https://token-creator-flame.vercel.app/
 ---
 ## How to Run the Project (Using Docker)
 
